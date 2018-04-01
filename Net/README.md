@@ -1,11 +1,8 @@
 # Net
 Linux网络模型设计和思考该如何规避问题？
 
-# create
-## 2018-04-01 愚人节
-
-# revise
-## 2018-04-01 愚人节
+## create 2018-04-01 愚人节
+## revise 2018-04-01 愚人节
 
 # Getting Started
 ```
