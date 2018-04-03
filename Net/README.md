@@ -1,8 +1,10 @@
 # Net
+```
 Linux网络模型设计和思考该如何规避问题？
 I/O多路复用主要探讨epoll。
 在linux环境下，单独讨论socket、epoll是毫无意义的。
 下面所有的论题都是结合socket和epoll。
+```
 # Getting Started
 ```
 阐述2个问题
