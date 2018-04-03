@@ -28,9 +28,9 @@ C 仅仅 accept 77个
 
 
 # 推荐文章
-* [SO_REUSEPORT1](https://lwn.net/Articles/542629)
+* [SO_REUSEPORT1](https://lwn.net/Articles/542629)
 * [SO_REUSEPORT2](https://lwn.net/Articles/542738)
-* [阐述close其中一个监听导致的问题](https://engineeringblog.yelp.com/2015/04/true-zero-downtime-haproxy-reloads.html)
+* [阐述close其中一个监听导致的问题](https://engineeringblog.yelp.com/2015/04/true-zero-downtime-haproxy-reloads.html)
 
 # 谈谈想法 - 设计思路
 ```
