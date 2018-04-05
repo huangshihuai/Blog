@@ -1,42 +1,72 @@
-# 缺陷
+# SO_REUSEPORT
+## 介绍
 ```
-1、关闭其中一个listen fd，将丢失待续队列中已就绪的fd
-原因：每个套接字都有自己的队列，并且当三次握手完成时，连接只被分配给其中一个队列。
-我们试想：在未支持SO_REUSEEPORT时close和listen queue是否也有相同问题？
+1、SO_REUSEPORT是端口复用技术，允许同一主机上的多个套接字绑定到相同的端口，旨在提高在多核系统上运行的多线程网络服务器应用程序的性能。
+2、由内核根据连接4元组决定该分发给哪个进程。（内核3.9之后采用负载均衡策略）
 ```
-# 解决方案
+## 能力&要求
 ```
-1、避免程序主动关闭listen fd(非法关闭)，除非是人为干预
-2、或许可以采用SO_ATTACH_REUSEPORT_CBPF和SO_ATTACH_REUSEPORT_EBPF来避免连接丢失(PS:后续将补充)
+1、分发策略
+    * 负载均衡（默认）
+    * 可控制的分发策略（用户）请关注：EBPF和CBPF
+2、支持TCP/UDP、IPV4/IPV6
+3、防止端口被劫持
 ```
-# 测试结果-见example
+## 缺陷
 ```
-前提：listen queue 10，有三个进程同时listen 8080
-运行后将有2个process会接受1个connect后close。(以A、B表示进程)
-剩下1个继续accept后续的listen。（以C表示进程）
-client 发起 100 连接。
-A 和 B 分别 accept 1 + listen queue 10
-C 仅仅 accept 77个
-总和 A+B+C=11 + 11 + 76 = 98？（2个退出的进程？？？？）
-在后续的实验中发现(修改进程数和listen queue 大小) 缺少的数量刚好和进程数相关-后续在查找资料-_-
+在TCP-SO_REUSEPORT下
+1、新增listen sock会导致丢失连接，但client也显示connect。
+    * 也就是说client和server三次握手成功，但没被accept。
+2、在关闭listen fd时会出现2中情况
+    * 丢失连接如1描述
+    * 丢失已经三次握手的listen queue。
 ```
-# 遗留的问题
+[缺陷1-问题解答](https://lwn.net/Articles/542738)
 ```
-1、采用SO_ATTACH_REUSEPORT_CBPF和SO_ATTACH_REUSEPORT_EBPF 解决问题？
-2、丢失fd的数量匹配不上
+The other noteworthy point is that there is a defect in the current implementation of TCP SO_REUSEPORT. If the number of listening sockets bound to a port changes because new servers are started or existing servers terminate, it is possible that incoming connections can be dropped during the three-way handshake. The problem is that connection requests are tied to a specific listening socket when the initial SYN packet is received during the handshake. If the number of servers bound to the port changes, then the SO_REUSEPORT logic might not route the final ACK of the handshake to the correct listening socket. In this case, the client connection will be reset, and the server is left with an orphaned request structure. A solution to the problem is still being worked on, and may consist of implementing a connection request table that can be shared among multiple listening sockets.
+意思是：监听套接字的增删，可能在三次握手期间丢弃连接。
 ```
 
+## 避免
+```
+1、应避免主动关闭listen fd
+2、保证在初始化所有listen fd后在提供服务
+3、避免动态新增listen fd
+4、通过人为敢于分发(EBPF和CBPF)？待验证的方案
+    * socket 提供SO_ATTACH_REUSEPORT_CBPF和SO_ATTACH_REUSEPORT_EBPF
+    * https://github.com/torvalds/linux/blob/master/tools/testing/selftests/net/reuseport_bpf_cpu.c
+```
 
-# 推荐文章
-* [SO_REUSEPORT1](https://lwn.net/Articles/542629)
-* [SO_REUSEPORT2](https://lwn.net/Articles/542738)
+# 
+
+## 关于SO_REUSEPORT几篇文章
+* [探讨REUSEPORT问题](https://lwn.net/Articles/542629)
 * [阐述close其中一个监听导致的问题](https://engineeringblog.yelp.com/2015/04/true-zero-downtime-haproxy-reloads.html)
 
-# 谈谈想法 - 设计思路
+
+## BPF demo - 后续补充如何通过控制bpf达成socket分发
+* [DEMO](https://github.com/torvalds/linux/tree/master/tools/testing/selftests/net)
 ```
-1、普遍的网络模型设计（reactor）是由一个独立的acceptor（reactor）等待连接
-    并通过dispatch分发给多个子reactor涉及eventfd、pip等方式异步通知
-2、如果采用SO_REUSEPORT需要考虑到兼容问题
+有兴趣的同学可以去研究
+reuseaddr_conflict.c
+reuseport_bpf.c
+reuseport_bpf_cpu.c
+reuseport_bpf_numa.c
+reuseport_dualstack.c
 ```
-# multi reactor + thread poll
+
+## 关于BPF几篇文章介绍
+* [eBPF 简史](https://blog.cloudflare.com/perfect-locality-and-three-epic-systemtap-scripts/)
+
+## SO_REUSEPORT能解决什么问题？
+## 谈谈想法 - 设计思路
+```
+1、普遍的网络模型设计（reactor）
+    * 是由一个独立的acceptor（reactor [可以是eventloop]）等待连接
+    * 通过dispatch分发给多个子reactor(eventloop)
+    * dispatch一般采用异步唤醒：eventfd、pip等方式
+2、采用SO_REUSEPORT？
+    * 将替换掉独立的accepter和disptach分发
+```
+## 参见 reactor 设计
 ![image](/Picture/multi_reactor_thread_pool.png)
