@@ -8,31 +8,36 @@
 ```
 1、分发策略
     * 负载均衡（默认）
-    * 可控制的分发策略（用户）请关注：EBPF和CBPF
+    * 可控制的分发策略(用户)请关注：EBPF和CBPF
 2、支持TCP/UDP、IPV4/IPV6
-3、防止端口被劫持
+3、防止端口被劫持
 ```
 ## 缺陷
 ```
 在TCP-SO_REUSEPORT下
 1、新增listen sock会导致丢失连接，但client也显示connect。
     * 也就是说client和server三次握手成功，但没被accept。
-2、在关闭listen fd时会出现2中情况
+2、在关闭listen fd时会出现2中情况
     * 丢失连接如1描述
     * 丢失已经三次握手的listen queue。
 ```
-[缺陷1-问题解答](https://lwn.net/Articles/542738)
+[缺陷1-问题解答](https://lwn.net/Articles/542738)
 ```
-The other noteworthy point is that there is a defect in the current implementation of TCP SO_REUSEPORT. If the number of listening sockets bound to a port changes because new servers are started or existing servers terminate, it is possible that incoming connections can be dropped during the three-way handshake. The problem is that connection requests are tied to a specific listening socket when the initial SYN packet is received during the handshake. If the number of servers bound to the port changes, then the SO_REUSEPORT logic might not route the final ACK of the handshake to the correct listening socket. In this case, the client connection will be reset, and the server is left with an orphaned request structure. A solution to the problem is still being worked on, and may consist of implementing a connection request table that can be shared among multiple listening sockets.
+The other noteworthy point is that there is a defect in the current implementation of TCP SO_REUSEPORT. 
+If the number of listening sockets bound to a port changes because new servers are started or existing servers terminate, 
+it is possible that incoming connections can be dropped during the three-way handshake. 
+The problem is that connection requests are tied to a specific listening socket when the 
+initial SYN packet is received during the handshake. 
+If the number of servers bound to the port changes, then the SO_REUSEPORT logic might not route the final ACK of the handshake to the correct listening socket. In this case, the client connection will be reset, and the server is left with an orphaned request structure. A solution to the problem is still being worked on, and may consist of implementing a connection request table that can be shared among multiple listening sockets.
 意思是：监听套接字的增删，可能在三次握手期间丢弃连接。
 ```
 
 ## 避免
 ```
 1、应避免主动关闭listen fd
-2、保证在初始化所有listen fd后在提供服务
+2、保证在初始化所有listen fd后在提供服务
 3、避免动态新增listen fd
-4、通过人为敢于分发(EBPF和CBPF)？待验证的方案
+4、通过人为敢于分发(EBPF和CBPF)？待验证的方案
     * socket 提供SO_ATTACH_REUSEPORT_CBPF和SO_ATTACH_REUSEPORT_EBPF
     * https://github.com/torvalds/linux/blob/master/tools/testing/selftests/net/reuseport_bpf_cpu.c
 ```
@@ -63,7 +68,7 @@ reuseport_dualstack.c
 ```
 1、普遍的网络模型设计（reactor）
     * 是由一个独立的acceptor（reactor [可以是eventloop]）等待连接
-    * 通过dispatch分发给多个子reactor(eventloop)
+    * 通过dispatch分发给多个子reactor(eventloop)
     * dispatch一般采用异步唤醒：eventfd、pip等方式
 2、采用SO_REUSEPORT？
     * 将替换掉独立的accepter和disptach分发
