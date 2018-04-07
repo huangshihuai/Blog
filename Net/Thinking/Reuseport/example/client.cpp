@@ -13,13 +13,14 @@
 #include <mutex>
 
 #define THR_NUM 10
-#define IP "127.0.0.1"
+#define IP "0.0.0.0"
 #define PORT 8080
-#define THR_RUN_SIZE 10
+#define THR_RUN_SIZE 20
 
 using namespace std;
 atomic<int> connNum;
 std::mutex g_print_mutex;
+std::mutex g_print_connect_mutex;
 int create_socket(const char *ip, const int port);
 
 void *runThread(void *) {
@@ -33,7 +34,6 @@ void *runThread(void *) {
         }
         connNum.fetch_add(1);
         fds.push_back(fd);
-        // close(fd);
     }
     for (auto it = fds.begin(); it != fds.end(); ++it) {
         std::lock_guard<std::mutex> print_mutex(g_print_mutex);
@@ -56,9 +56,6 @@ int main(void) {
         pthread_join(*it, nullptr);
     }
     cout << "connect number: " << connNum << endl;
-    while(true) {
-        sleep(100);
-    }
     return 0;
 }
 
@@ -72,6 +69,7 @@ int create_socket(const char *ip, const int port) {
     cli.sin_addr.s_addr = inet_addr(ip);
     cli.sin_port = htons(port);
     int conn = connect(fd, (struct  sockaddr *)&cli, sizeof(cli));
+    cout << "connect: " << conn << endl;
     if (-1 == conn) {
         return conn;
     }
