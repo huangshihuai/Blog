@@ -13,10 +13,6 @@
 3、防止端口被劫持
 ```
 
-## 解决什么问题？
-```
-```
-
 ## 缺陷？
 * **探讨文章** - *变动accept导致连接丢失* - [goto](https://lwn.net/Articles/542738)
 ```
@@ -78,6 +74,10 @@ reuseport_dualstack.c
 * [eBPF 简史](https://blog.cloudflare.com/perfect-locality-and-three-epic-systemtap-scripts/)
 
 ## SO_REUSEPORT能解决什么问题？
+```
+1、
+```
+
 ## 谈谈想法 - 设计思路
 ```
 1、普遍的网络模型设计（reactor）
