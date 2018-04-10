@@ -15,6 +15,7 @@
 3、防止端口被劫持
 ```
 
+<<<<<<< HEAD
 ## 解决什么问题？(现有模型存在的问题reactor)
 ```
 1、在海量连接下，单个accept线程会成为主要瓶颈也存在大量CPU cache未命中。(常见的reactor模型)
@@ -25,6 +26,8 @@
     缓存跳跃
 ```
 
+=======
+>>>>>>> 07300159f294495c453bca9108931c42c21f08d8
 ## 缺陷？
 * **探讨文章** - *变动accept导致连接丢失* - [goto](https://lwn.net/Articles/542738)
 ```
@@ -75,6 +78,14 @@ reuseport_dualstack.c
 ## 关于BPF几篇文章介绍
 * [eBPF 简史](https://blog.cloudflare.com/perfect-locality-and-three-epic-systemtap-scripts/)
 
+<<<<<<< HEAD
+=======
+## SO_REUSEPORT能解决什么问题？
+```
+1、
+```
+
+>>>>>>> 07300159f294495c453bca9108931c42c21f08d8
 ## 谈谈想法 - 设计思路
 ```
 1、普遍的网络模型设计（reactor）
