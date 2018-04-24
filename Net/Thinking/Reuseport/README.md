@@ -17,9 +17,9 @@
 
 ## 解决现有模型存在的问题？
 ```
-单线程listen/accept，多个运行线程。
+单线程listen/accept，多个运行线程。
     1、性能瓶颈
-    2、未能充分利用cpu cache（异步通知工作线程导致缓存丢失）
+    2、未能充分利用cpu cache（异步通知工作线程导致缓存丢失）
 多线程共享listen和accept（例如：nginx）
     1、锁竞争
     2、负载均衡不成比例
@@ -62,7 +62,7 @@ If the number of servers bound to the port changes, then the SO_REUSEPORT logic 
 1、繁忙线程导致连接不及时
 ```
 
-## BPF demo - 后续补充如何通过控制bpf达成socket分发
+## BPF demo - 后续补充如何使用bpf控制socket分发
 * [DEMO](https://github.com/torvalds/linux/tree/master/tools/testing/selftests/net)
 
 ## 关于SO_REUSEPORT几篇文章
