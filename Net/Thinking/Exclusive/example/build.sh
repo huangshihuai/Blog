@@ -1,8 +1,13 @@
 #!/bin/bash
 ROOT=$(readlink -f `dirname $BASE_SOURCE[0]`)
-DIRBUILD='build'
+DIRBUILD="$ROOT/build"
 
-if -d "$ROOT/$DIRBUILD" then
-    rm -rf "$ROOT/$DIRBUILD"
+
+if -d "$DIRBUILD"; then
+    rm -rf "$DIRBUILD"
 fi
 
+mkdir -p "$DIRBUILD"
+
+############################
+cd $DIRBUILD && cmake .. && make -j2
