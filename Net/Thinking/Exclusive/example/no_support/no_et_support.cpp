@@ -1,11 +1,6 @@
 /////////////////////////////
 // g++ old.cpp -pthread -g3 -O0
 // ./a.out 0.0.0.0 8080 2
-
-// testing:
-// telnet localhost 8080
-// input: aaaaaa
-// input: bbbbbb
 ////////////////////////////////
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -22,6 +17,7 @@
 #include <iostream>
 #include <vector>
 #include <utility>
+#include "net.h"
 
 using namespace std;
 #define PROCESS_NUM 2
@@ -29,10 +25,7 @@ using namespace std;
 
 struct threadData;
 
-int CreateSock(const char *ip, int port);
 void *TestEpoll(void *);
-int Accept(int listenfd, pthread_t pid);
-int AddEpoll(const threadData &&data, int fd, int event_flags = EPOLLIN, int epoll_ctl_opt = EPOLL_CTL_ADD);
 
 struct threadData {
     int epollfd;
@@ -73,7 +66,7 @@ int main(int argc, char **argv)
             break;
         }
         event.data.fd = data.listenfd;
-        event.events = EPOLLIN;
+        event.events = EPOLLIN | EPOLLET;
         int state = epoll_ctl(data.epollfd, EPOLL_CTL_ADD, data.listenfd, &event);
         if (state != 0) {
             cerr << "epoll ctl error, errno: " << errno << endl;
@@ -103,6 +96,7 @@ int main(int argc, char **argv)
     }
     if (nullptr != data.events) {
         free(data.events);
+        data.events = nullptr;
     }
     return 0;
 }
@@ -128,13 +122,13 @@ void *TestEpoll(void *data)
             } else if (tData->events[i].events &  EPOLLIN) {
                 if (tData->listenfd == tData->events[i].data.fd) {
                     while (true) {
-                        int fd = Accept(tData->listenfd, pid);
+                        int fd = Accept(tData->listenfd);
                         if (fd == -1 && EAGAIN == errno) {
                             //std::cout << "EAGAIN: " << EAGAIN << " errno: " << errno << endl;
                             break;
                         }
                         // add epoll
-                        int state = AddEpoll(std::move(*tData), fd);
+                        int state = AddEpoll(std::move(tData->epollfd), fd, EPOLLIN | EPOLLET);
                         if (state != 0) {
                             PRINT_STRERRNO();
                             cerr << "epoll ctl error, fd: " << fd << " pid: " << pid << endl;
@@ -157,55 +151,4 @@ void *TestEpoll(void *data)
             }
         }
     } while(1);
-}
-
-int AddEpoll(const threadData &&data, int fd, int event_flags, int epoll_ctl_opt) {
-    sleep(2); // 模拟忙
-    struct epoll_event event;
-    event.data.fd = fd;
-    event.events = event_flags;
-    int state = epoll_ctl(data.epollfd, epoll_ctl_opt, fd, &event);
-    return state;
-}
-
-int Accept(int listenfd, pthread_t pid) {
-    struct sockaddr in_addr;
-    socklen_t in_len;
-    int infd;
-    in_len = sizeof(in_addr);
-    infd = accept4(listenfd, &in_addr, &in_len, SOCK_CLOEXEC | SOCK_NONBLOCK);
-    return infd;
-}
-
-int CreateSock(const char *ip, int port)
-{
-    int listenfd = 0;
-    listenfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (listenfd < 0)
-    {
-        return listenfd;
-    }
-    int reuseaddr = 1;
-    int keepalive = 1;
-    setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuseaddr, sizeof(reuseaddr));
-    setsockopt(listenfd, SOL_SOCKET, SO_KEEPALIVE, (char *)&keepalive, sizeof(keepalive));
-
-    unsigned long nonblocking = 1;
-    ioctl(listenfd, FIONBIO, (void *)&nonblocking);
-
-    struct sockaddr_in srv;
-    srv.sin_family = AF_INET;
-    srv.sin_addr.s_addr = inet_addr(ip);
-    srv.sin_port = htons(port);
-    int ret = bind(listenfd, (struct sockaddr*)&srv, sizeof(sockaddr));
-    if (ret < 0)
-    {
-        return ret;
-    }
-    ret = listen(listenfd, 5);
-    if (ret < 0)
-    {
-        return ret;
-    }
-    return listenfd;
 }
