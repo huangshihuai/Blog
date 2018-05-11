@@ -41,11 +41,16 @@ If the number of servers bound to the port changes, then the SO_REUSEPORT logic 
 
 ## 为什么有缺陷？
 ```
-1、每组accept都拥有各自的listen queue(半连接队列 + 全连接队列)
-2、SO_REUSEPORT默认采用连接4元组 规则分发给连接进程
-3、在第一次分节符SYN到达时，就已经确定分发规则。在此期间因为服务变动可能会导致连接失效
-    有一个连接在 accept1的半连接队列(三次握手)上，且服务新增一个accept2
-    accept2的新增导致hash值变化，可能导致应该落到accept1的报文落到了accept2上，连接失效。
+1、拥有多组accept，每组都拥有各自的listen queue(半连接队列 + 全连接队列)
+2、SO_REUSEPORT默认采用连接4元组确定分发队列。
+场景描述：
+    * 拥有3组accept队列:A、B、C
+    * client发起连接(处于三次握手期间)
+    * 当第一个分节符到达时(SYN),kernel通过连接4元组确定接收队列,假设为A
+    * 此时,服务accept发生变动(新增和删除),假设新增D(此时存在:A、B、C、D)
+    * 当第二个分节符到达时(ASK),kernel可能判定这个连接落入其他连接队列,假设为B
+    * 这时 分节符1(SYN)在queue-A, 分节符2(ASK)在queue-B,导致这个连接失效
+    * 此时此刻:queue-(A、、B、C)中, 还处于三次握手期间的连接, 都会失效.
 ```
 
 ## 解决方案
