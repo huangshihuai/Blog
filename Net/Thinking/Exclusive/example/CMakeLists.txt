@@ -12,19 +12,20 @@ endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fPIC")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC")
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/api/include)
 
-set(NETOUTPUT ${CMAKE_BINARY_DIR}/output)
-link_directories(${NETOUTPUT}/lib)
+set(APIOUTPUT ${CMAKE_BINARY_DIR}/output)
+link_directories(${APIOUTPUT}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${APIOUTPUT}/bin)
 
-add_subdirectory(net)
+add_subdirectory(api)
 
 #  define macro 
 macro(add_example_target EXAMPLE_PATH EXAMPLE_TARGET)
     add_executable("example_${EXAMPLE_TARGET}" "${EXAMPLE_PATH}/example_${EXAMPLE_TARGET}.cpp")
-    target_link_libraries("example_${EXAMPLE_TARGET}" net-static)
+    target_link_libraries("example_${EXAMPLE_TARGET}" api-static)
     target_link_libraries("example_${EXAMPLE_TARGET}" pthread) 
 endmacro(add_example_target)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${NETOUTPUT}/bin)
-add_example_target("." client)
-add_example_target(${CMAKE_CURRENT_SOURCE_DIR}/no_support lt)
+add_example_target(client client)
+add_example_target(no_support lt)

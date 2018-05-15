@@ -20,6 +20,7 @@
 #include "net.h"
 
 using namespace std;
+using namespace net;
 #define PROCESS_NUM 2
 #define MAXEVENTS 64
 
@@ -115,7 +116,7 @@ void *TestEpoll(void *data)
         size = epoll_wait(tData->epollfd, tData->events, MAXEVENTS, -1);
         cout << "process " << pid << " return from epoll_wait!\n";
         for (int i = 0; i < size; i++) {
-            if ((tData->events[i].events & EPOLLERR) || (tData->events[i].events & EPOLLHUP)) {
+            if ((tData->events[i].events & EPOLLERR) || (tData->events[i].events & EPOLLHUP | EPOLLERR)) {
                 fprintf (stderr, "epoll error\n");
                 close (tData->events[i].data.fd);
                 continue;
@@ -124,11 +125,9 @@ void *TestEpoll(void *data)
                     while (true) {
                         int fd = Accept(tData->listenfd);
                         if (fd == -1 && EAGAIN == errno) {
-                            //std::cout << "EAGAIN: " << EAGAIN << " errno: " << errno << endl;
                             break;
                         }
-                        // add epoll
-                        int state = AddEpoll(std::move(tData->epollfd), fd, EPOLLIN | EPOLLET);
+                        int state = ModEpoll(std::move(tData->epollfd), fd, EPOLLIN | EPOLLET | EPOLLHUP | EPOLLERR);
                         if (state != 0) {
                             PRINT_STRERRNO();
                             cerr << "epoll ctl error, fd: " << fd << " pid: " << pid << endl;
@@ -141,7 +140,9 @@ void *TestEpoll(void *data)
                     int state;
                     do {
                         state = read(tData->events[i].data.fd, &c, sizeof(c));
-                        if (state < 0 && (EAGAIN == errno || EWOULDBLOCK == errno)) {
+                        if (state <= 0 && (EAGAIN == errno || EWOULDBLOCK == errno)) {
+                            net::Close(tData->events[i].data.fd);
+                            ModEpoll(std::move(tData->epollfd), tData->events[i].data.fd, tData->events[i].events, EPOLL_CTL_DEL);
                             break;
                         }
                         cout << pid << " " << c << endl;

@@ -4,7 +4,7 @@
 #include "net.h"
 
 namespace net {
-int AddEpoll(const int &&epollfd, int fd, int event_flags, int epoll_ctl_opt) {
+int ModEpoll(const int &&epollfd, int fd, int event_flags, int epoll_ctl_opt) {
     struct epoll_event event;
     event.data.fd = fd;
     event.events = event_flags;
@@ -19,8 +19,22 @@ int Accept(int listenfd) {
     return accept4(listenfd, &in_addr, &in_len, SOCK_CLOEXEC | SOCK_NONBLOCK);
 }
 
-int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
-    return ::connect(sockfd, addr, addrlen);
+int Connect(int &clientfd, char *ip, int &&port) {
+    int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    NonNegative(fd, "create socket error", return clientfd);
+    struct sockaddr_in clientAddr;
+    clientAddr.sin_family = AF_INET;
+    clientAddr.sin_port = htons(port);
+    clientAddr.sin_addr.s_addr = inet_addr(ip);
+    int ret = ::connect(fd, (struct sockaddr *)&clientAddr, sizeof(struct sockaddr));
+    if (0 == ret) {
+        clientfd = fd;
+    }
+    return ret;
+}
+
+int Close(int fd) {
+    return ::close(fd);
 }
 
 int CreateSock(const char *ip, int port)
