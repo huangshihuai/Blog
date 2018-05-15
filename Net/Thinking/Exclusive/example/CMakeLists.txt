@@ -22,10 +22,10 @@ add_subdirectory(api)
 
 #  define macro 
 macro(add_example_target EXAMPLE_PATH EXAMPLE_TARGET)
-    add_executable("example_${EXAMPLE_TARGET}" "${EXAMPLE_PATH}/example_${EXAMPLE_TARGET}.cpp")
-    target_link_libraries("example_${EXAMPLE_TARGET}" api-static)
-    target_link_libraries("example_${EXAMPLE_TARGET}" pthread) 
+    add_executable("example_${EXAMPLE_PATH}_${EXAMPLE_TARGET}" "${EXAMPLE_PATH}/example_${EXAMPLE_TARGET}.cpp")
+    target_link_libraries("example_${EXAMPLE_PATH}_${EXAMPLE_TARGET}" api-static)
+    target_link_libraries("example_${EXAMPLE_PATH}_${EXAMPLE_TARGET}" pthread) 
 endmacro(add_example_target)
 
-add_example_target(client client)
+add_example_target(no_support client_lt)
 add_example_target(no_support lt)

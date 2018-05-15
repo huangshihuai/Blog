@@ -125,6 +125,7 @@ void *TestEpoll(void *data)
                     while (true) {
                         int fd = net::Accept(tData->listenfd);
                         if (fd == -1 && EAGAIN == errno) {
+                            std::cerr << pid << " accept eagain\n";
                             break;
                         }
                         int state = net::ModEpoll(std::move(tData->epollfd), fd, EPOLLIN | EPOLLHUP | EPOLLERR | EPOLLRDHUP);
@@ -136,18 +137,21 @@ void *TestEpoll(void *data)
                         cout << "accept:" << fd << " pid: " << pid << endl;
                     }
                 } else {
-                    char c[8];
+                    char c;
                     int state;
                     do {
-                        state = read(events[i].data.fd, &c, strlen(c));
+                        state = read(events[i].data.fd, &c, sizeof(c));
                         if (state == 0) {
+                            std::cerr << "errno " << endl;
                             net::Close(events[i].data.fd);
                             //  close 默认会移
                             net::ModEpoll(std::move(tData->epollfd), events[i].data.fd, events[i].events, EPOLL_CTL_DEL);
                             break;
+                        } else if (state == -1 && errno == EAGAIN) {
+                            break;
                         }
                         cout << pid << " " << c << endl;
-                        // sleep(1); // 比较极端的场景, 用减缓时间来模拟
+                        sleep(1); // 比较极端的场景, 用减缓时间来模拟
                     } while(true);
                 }
             }

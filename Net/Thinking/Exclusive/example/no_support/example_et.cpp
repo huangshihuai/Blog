@@ -1,7 +1,3 @@
-/////////////////////////////
-// g++ old.cpp -pthread -g3 -O0
-// ./a.out 0.0.0.0 8080 2
-////////////////////////////////
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/ioctl.h>
@@ -114,6 +110,7 @@ void *TestEpoll(void *data)
     int size;
     do {
         size = epoll_wait(tData->epollfd, tData->events, MAXEVENTS, -1);
+        sleep(1);   // 休眠 模拟 或者 client并发(模拟: 忙时)
         cout << "process " << pid << " return from epoll_wait!\n";
         for (int i = 0; i < size; i++) {
             if ((tData->events[i].events & EPOLLERR) || (tData->events[i].events & EPOLLHUP | EPOLLERR)) {

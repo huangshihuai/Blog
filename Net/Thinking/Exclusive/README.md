@@ -48,27 +48,23 @@
     *   3081205504 a
 
 3、测试方式：
-    run server: ./no_support 0.0.0.0 8080 
-    run client: telnet localhost 8080
-        client 输入一组数据
+    run server: output/bin/example_no_support_lt 0.0.0.0 8080 2
+    run client: output/bin/example_no_support_client_lt 0.0.0.0 8080 1
 ```
 # ET is bad
 ```
-    * 场景1:
+    * 场景1(数据分割):
         * 2个线程A and B, 同时等待事件(epoll_wait)
         * 当有数据过来时(2048字节), 假设A被唤醒.
-        * A开始读取,当我们认为读完数据时(2048),
+        * A开始读取,当我们认为读完数据时(2048),此时又有数据到达
         * 
     * 场景2:
         * 2个线程A and B, 同时等待事件(epoll_wait)
         * 当有新连接到达, 假设A被唤醒(ET仅通知一次),这时B继续休眠
             * 此时A从就绪队列中取走最后一个连接(应用层不可知, 需再次询问), 此时时listenfd事件由可读变为不可读, ET处于待通知状态
             * 当A在处理连接时，有一个新连接到达, epoll将唤醒线程B(速度竞争).
-            * 若A处理足够快, B将无事可做(EAGAIN)
+            * 若A处理足够快, B将无事可做(EAGAIN).
 ```
-# LT
-# 临界值(accept)
-
 ## Support EPOLLEXCLUSIVE
 ### ET
 ### LT
