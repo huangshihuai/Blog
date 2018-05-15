@@ -27,5 +27,6 @@ macro(add_example_target EXAMPLE_PATH EXAMPLE_TARGET)
     target_link_libraries("example_${EXAMPLE_PATH}_${EXAMPLE_TARGET}" pthread) 
 endmacro(add_example_target)
 
-add_example_target(no_support client_lt)
+add_example_target(no_support client)
 add_example_target(no_support lt)
+add_example_target(no_support et)

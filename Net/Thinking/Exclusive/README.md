@@ -30,7 +30,7 @@
         * B 线程 read data  |
 ```
 ### 参考结果
-![image](/Picture/no_support_exclusive.png)
+![image](/Picture/no_support_exclusive_lt.png)
 ```
 1、场景1：
     *   process 3081202496 return from epoll_wait!  - A 被唤醒
@@ -49,22 +49,44 @@
 
 3、测试方式：
     run server: output/bin/example_no_support_lt 0.0.0.0 8080 2
-    run client: output/bin/example_no_support_client_lt 0.0.0.0 8080 1
+    run client: output/bin/example_no_support_client 0.0.0.0 8080 2
+        server 验证accept和读写顺序: ip 端口 线程数量
+            * server 通过sleep来模拟大规模请求,从而保证其他epoll_wait能够被唤醒
+        client 发送数据: ip 端口 写次数
+            * 多次写入是为了重制event状态
 ```
 # ET is bad
 ```
     * 场景1(数据分割):
         * 2个线程A and B, 同时等待事件(epoll_wait)
         * 当有数据过来时(2048字节), 假设A被唤醒.
-        * A开始读取,当我们认为读完数据时(2048),此时又有数据到达
-        * 
-    * 场景2:
+        * A开始读取数据(有几种情况)
+            * A 读取中(还未读完2048), 有数据到达
+            * A 读取完2048, 但还未再次试探(是否数据为空:EAGAIN), 有数据到达
+        * 不管A有多少种状态, ET将被再次激活，从而B线程被唤醒。
+    * 场景2(Accept, 比较难以模拟,但方式和场景1类似):
         * 2个线程A and B, 同时等待事件(epoll_wait)
-        * 当有新连接到达, 假设A被唤醒(ET仅通知一次),这时B继续休眠
-            * 此时A从就绪队列中取走最后一个连接(应用层不可知, 需再次询问), 此时时listenfd事件由可读变为不可读, ET处于待通知状态
-            * 当A在处理连接时，有一个新连接到达, epoll将唤醒线程B(速度竞争).
+        * 当有新连接到达, 假设A被唤醒(ET仅通知一次)
+            * 此时A从就绪队列中取走最后一个连接(应用层不可知, 需再次询问,直到返回EAGAIN), 此时时listenfd事件由可读变为不可读, ET处于待通知状态
+            * 当A在处理连接时，有一个新连接到达, epoll将唤醒线程B(A与B的速度竞争).
             * 若A处理足够快, B将无事可做(EAGAIN).
+    * 测试方式
+        run server: output/bin/example_no_support_et 0.0.0.0 8080 2
+        run client output/bin/example_no_support_client 0.0.0.0 8080 2
+            server 见LT测试方式
+            client 见LT测试方式
 ```
+### 参考结果
+![image](/Picture/no_support_exclusive_et.png)
+```
+1、场景1 如上图
+    * A、B线程全部被唤醒
+    * A、B交互读取数据
+2、场景2 比较难模拟,暂时先放过.
+    * 模拟方式: 在同一个进程内, 有server也有client,通过同步或者原子或者全局变量(Volatile)
+```
+### [参考example](example/no_support)
+
 ## Support EPOLLEXCLUSIVE
 ### ET
 ### LT
