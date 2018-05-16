@@ -83,7 +83,7 @@ int main(int argc, char **argv)
             if (0 == res) {
                 threads.push_back(pid);
             }
-        }
+        } 
         TestEpoll((void*)&data);
         for (auto pid = threads.begin(); pid != threads.end(); ++pid) {
             pthread_join(*pid, nullptr);
@@ -111,6 +111,7 @@ void *TestEpoll(void *data)
     int size;
     do {
         size = epoll_wait(tData->epollfd, events, MAXEVENTS, -1);
+        sleep(10); // 这里是模拟处理繁忙情况
         cout << "process " << pid << " return from epoll_wait!\n";
         for (int i = 0; i < size; i++) {
                 if (events[i].events & (EPOLLHUP | EPOLLERR)) {
@@ -142,14 +143,14 @@ void *TestEpoll(void *data)
                     int state;
                     do {
                         state = read(events[i].data.fd, &c, sizeof(c));
-                        sleep(2);
                         if (state == 0) {
-                            std::cerr << "errno " << endl;
+                            std::cerr << "read size is zero " << endl;
                             net::Close(events[i].data.fd);
                             //  close 默认会移
                             net::ModEpoll(std::move(tData->epollfd), events[i].data.fd, events[i].events, EPOLL_CTL_DEL);
                             break;
                         } else if (state == -1 && errno == EAGAIN) {
+                            std::cerr << "read function error errno: " << errno << " strErr: " << strerror(errno) << endl;
                             break;
                         }
                         cout << pid << " " << c << endl;
