@@ -1,46 +1,51 @@
 # epoll 新特性: EPOLLEXCLUSIVE
 ## 能力
 ```
-    * 解决了鲸群问题 - yes(但并不完美)
-        - kernel 能够保证epoll_wait是原子性.
-            1) 在事件不及时处理下
-                * LT不断触发事件, 导致其他epoll_wait也被唤醒, 可能导致: 无事可做 或者 数据分裂.
-                * ET 能够正常处理
-            2) 同一个fd不断有事件到达
-                * LT不断触发事件, 导致其他epoll_wait也被唤醒, 可能导致: 无事可做 或者 数据分裂
-                * ET不断触发事件, 导致其他epoll_wait也被唤醒, 可能导致: 无事可做 或者 数据分裂
-        - 详细看 [EPOLLEXCLUSIVE-patch]
+* 解决了鲸群问题 - yes(但并不完美)
+    - kernel 能够保证epoll_wait是原子性. 请看以下场景
+        1) 事件不及时处理时
+            * LT不断触发事件, 导致其他epoll_wait也被唤醒, 可能导致: 无事可做 或者 数据分裂.
+            * ET 能够正常处理(仅触发一次)
+        2) 同一个fd不断有事件到达
+            * LT不断触发事件, 导致其他epoll_wait也被唤醒, 可能导致: 无事可做 或者 数据分裂
+            * ET不断触发事件, 导致其他epoll_wait也被唤醒, 可能导致: 无事可做 或者 数据分裂
+    - 详细看 [EPOLLEXCLUSIVE-patch]
 ```
-* [EPOLLEXCLUSIVE-patch](https://github.com/torvalds/linux/commit/df0108c5da561c66c333bb46bfe3c1fc65905898)
-## 问题？
-```
-    论证
-        * 不支持EPOLLEXCLUSIVE, EPOLL存在鲸群问题
-        * 支持EPILLEXCLUSIVE, EPOLL也存在鲸群问题
-        * 多线程读写同一个fd
-```
+* [EPOLLEXCLUSIVE-补丁](https://github.com/torvalds/linux/commit/df0108c5da561c66c333bb46bfe3c1fc65905898)
 
 ## 该如何解决?
 ```
+* 事件到达时移除epoll事件集
+* 工程上保证
+    1) accept问题
+        * 可独立成一个模块, 通过它分发连接
+    2) 同一个fd, 同一时刻被多个线程共有
+        * 通过原子操作保fd只能被一个线程所拥有
+* 
+```
+## 论证&问题
+```
+* 不支持EPOLLEXCLUSIVE, EPOLL存在鲸群问题
+* 支持EPILLEXCLUSIVE, EPOLL也存在鲸群问题
+* 多线程读写同一个fd
 ```
 
-## 验证
 ## No Support EPOLLEXCLUSIVE
 ### LT is bad
 ```
-    * 场景1:
-        * 2个线程A and B, 同时等待事件(epoll_wait)
-        * 当有新请求到达时(accept)
-        * A,B 将被全部唤醒(不能够及时的处理事件,导致全部被唤醒)
-        * A 线程 accept
-        * B 线程 EAGAIN
-    * 场景2:
-        * 2个线程A and B, 同时等待事件(epoll_wait)
-        * 当有行数据到达时
-        * A,B 将被全部唤醒(可能)
-        * A 线程 read data  |
-                            | 导致数据包被2个线程所拥有
-        * B 线程 read data  |
+* 场景1:
+    * 2个线程A and B, 同时等待事件(epoll_wait)
+    * 当有新请求到达时(accept)
+    * A,B 将被全部唤醒(不能够及时的处理事件,导致全部被唤醒)
+    * A 线程 accept
+    * B 线程 EAGAIN
+* 场景2:
+    * 2个线程A and B, 同时等待事件(epoll_wait)
+    * 当有行数据到达时
+    * A,B 将被全部唤醒(可能)
+    * A 线程 read data  |
+                        | 导致数据包被2个线程所拥有
+    * B 线程 read data  |
 ```
 ### 参考结
 ![image](/Picture/no_support_exclusive_lt.png)
