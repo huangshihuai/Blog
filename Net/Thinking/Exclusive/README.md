@@ -1,28 +1,39 @@
 # epoll 新特性: EPOLLEXCLUSIVE
 ## 能力
 ```
-* 解决了鲸群问题 - yes(但并不完美)
-    - kernel 能够保证epoll_wait是原子性. 请看以下场景
-        1) 事件不及时处理时
-            * LT不断触发事件, 导致其他epoll_wait也被唤醒, 可能导致: 无事可做 或者 数据分裂.
-            * ET 能够正常处理(仅触发一次)
-        2) 同一个fd不断有事件到达
-            * LT不断触发事件, 导致其他epoll_wait也被唤醒, 可能导致: 无事可做 或者 数据分裂
-            * ET不断触发事件, 导致其他epoll_wait也被唤醒, 可能导致: 无事可做 或者 数据分裂
-    - 详细看 [EPOLLEXCLUSIVE-patch]
+* 解决了鲸群问题 - yes(但还是存在鲸群问题)
+    - kernel能够保证epoll_wait是原子性(仅唤醒其中一个), 为什么还存在鲸群?
+        * 仅讨论EPOLLEXCLUSIVE将是毫无意义的, 我们将结合EPOLL其它flag(例如ET和LT)
+        * 众所周知, ET仅通知一次, LT将不断的通知(直到事件完全被处理)
+        * epoll flage: EPOLLEXCLUSIVE + (ET or LT),  它将是不安全的, 场景如下:
+            1) 事件不及时处理时
+                * LT不断触发事件, 导致其他epoll_wait也被唤醒(每次触发事件,将唤醒其中一个)
+                    - 被唤醒的线程无事可做
+                    - 数据分裂: 多线程读写同一个文件描述
+                * ET 能够正常处理(仅触发一次)
+            2) 同一个fd不断有事件到达
+                * LT不断触发事件, 导致其他epoll_wait也被唤醒(每次触发事件,将唤醒其中一个)
+                    - 被唤醒的线程无事可做
+                    - 数据分裂: 多线程读写同一个文件描述
+                * ET不断触发事件, 导致其他epoll_wait也被唤醒(每次触发事件,将唤醒其中一个)
+                    - 被唤醒的线程无事可做
+                    - 数据分裂: 多线程读写同一个文件描述
 ```
 * [EPOLLEXCLUSIVE-补丁](https://github.com/torvalds/linux/commit/df0108c5da561c66c333bb46bfe3c1fc65905898)
 
+## 使用和不适用EPOLLEXCLUSIVE的区别是什么?
+```
+先不写,以免误导.
+先研究研究...
+``
+
 ## 该如何解决?
 ```
-* 事件到达时移除epoll事件集
-* 工程上保证
-    1) accept问题
-        * 可独立成一个模块, 通过它分发连接
-    2) 同一个fd, 同一时刻被多个线程共有
-        * 通过原子操作保fd只能被一个线程所拥有
-* 
+* 事件到达时移除epoll事件集,到需要读写时在加入epoll事件集, 多一些api调用
+* 工程上的保证.
+    - 
 ```
+
 ## 论证&问题
 ```
 * 不支持EPOLLEXCLUSIVE, EPOLL存在鲸群问题
@@ -73,7 +84,7 @@
         client 发送数据: ip 端口 写次数
             * 多次写入是为了重制event状态
 ```
-# ET is bad
+### ET is bad
 ```
     * 场景1(数据分割):
         * 2个线程A and B, 同时等待事件(epoll_wait)
@@ -108,5 +119,22 @@
 
 ## Support EPOLLEXCLUSIVE
 ### LT is Bad
+```
+LT
+* 场景1:
+    * 2个线程A and B, 同时等待事件(epoll_wait)
+    * 当有新请求到达时(accept)
+    * A,B 将被全部唤醒(不能够及时的处理事件,导致全部被唤醒)
+    * A 线程 accept
+    * B 线程 EAGAIN
+* 场景2:
+    * 2个线程A and B, 同时等待事件(epoll_wait)
+    * 当有行数据到达时
+    * A,B 将被全部唤醒(可能)
+    * A 线程 read data  |
+                        | 导致数据包被2个线程所拥有
+    * B 线程 read data  |
+```
+
 
 ### ET is Bad
