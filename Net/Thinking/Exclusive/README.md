@@ -110,6 +110,7 @@
 ```
 ### 参考结果
 ![image](/Picture/no_support_exclusive_et.png)
+# ![image](Picture/no_support_exclusive_et.png)
 ```
 1、场景1 如上图,数据无序的落到A和B内.
     * A、B线程全部被唤
