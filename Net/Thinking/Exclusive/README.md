@@ -25,7 +25,7 @@
 ```
 先不写,以免误导.(深入Linux内核、预估CPU也得考虑)
 在研究中...
-``
+```
 
 ## 该如何解决?
 ```
@@ -110,7 +110,6 @@
 ```
 ### 参考结果
 ![image](/Picture/no_support_exclusive_et.png)
-# ![image](Picture/no_support_exclusive_et.png)
 ```
 1、场景1 如上图,数据无序的落到A和B内.
     * A、B线程全部被唤
