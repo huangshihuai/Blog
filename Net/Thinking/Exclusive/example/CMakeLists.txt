@@ -1,5 +1,6 @@
 project(example)
 cmake_minimum_required(VERSION 3.0)
+set(CMAKE_VERBOSE_MAKEFILE on)
 
 set(ONDEBUG true)
 if(${ONDEBUG})
@@ -23,7 +24,7 @@ add_subdirectory(api)
 #  define macro 
 macro(add_example_target EXAMPLE_PATH EXAMPLE_TARGET)
     add_executable("example_${EXAMPLE_PATH}_${EXAMPLE_TARGET}" "${EXAMPLE_PATH}/example_${EXAMPLE_TARGET}.cpp")
-    target_link_libraries("example_${EXAMPLE_PATH}_${EXAMPLE_TARGET}" api-static)
+    target_link_libraries("example_${EXAMPLE_PATH}_${EXAMPLE_TARGET}" api-shared)
     target_link_libraries("example_${EXAMPLE_PATH}_${EXAMPLE_TARGET}" pthread) 
 endmacro(add_example_target)
 

@@ -17,7 +17,7 @@
 
 ## 解决现有模型存在的问题？
 ```
-单线程listen/accept，多个运行线程。
+单线程listen/accept + 多个Reactor线程。
     1、性能瓶颈
     2、未能充分利用cpu cache（异步通知工作线程导致缓存丢失）
 多线程共享listen和accept（例如：nginx）
