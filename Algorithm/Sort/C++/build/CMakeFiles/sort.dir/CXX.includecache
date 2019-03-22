@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/work/git/Blog/Algorithm/Sort/C++/main.cpp
+sort.h
+/home/work/git/Blog/Algorithm/Sort/C++/sort.h
+random
+-
+
+/home/work/git/Blog/Algorithm/Sort/C++/sort.h
+array
+-
+iostream
+-
+random
+-
+

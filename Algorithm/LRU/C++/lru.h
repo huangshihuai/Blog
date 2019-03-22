@@ -1,3 +1,5 @@
+#ifndef ALGORITHM_LRU_C_PLUS_PLUS_LRU_H
+#define ALGORITHM_LRU_C_PLUS_PLUS_LRU_H
 #include <unordered_map>
 #include <list>
 #include <iostream>
@@ -58,3 +60,4 @@ size_t LRUCache<TK, TV>::put(const TK & k, const TV & v) {
     this->_kv[k] = this->_eq.begin();
     return 0;
 }
+#endif // ALGORITHM_LRU_C_PLUS_PLUS_LRU_H
