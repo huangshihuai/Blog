@@ -12,7 +12,7 @@ void NetServer::installSignal() {
     signal(SIGTSTP, SIG_IGN); // receive signal will stop the process
     signal(SIGTTOU, SIG_IGN); // from terminal
     signal(SIGTTIN, SIG_IGN); // from terminal
-    signal(SIGHUP,  SIG_IGN); // from terminal
+    signal(SIGHUP,  SIG_IGN);
     signal(SIGQUIT, SIG_IGN);
     signal(SIGURG,  SIG_IGN); // URG
     signal(SIGTERM, [](int sign) {
