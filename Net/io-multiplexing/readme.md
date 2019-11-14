@@ -15,6 +15,7 @@ If one or more I/O conditions are ready will notification.
 
 ## 鲸群问题
 ```
+它更多描述CPU空转.
     * 我们养了至少10只鸡, 它们很有活力, 不过有一早上没有吃饭.
     * 现在你有3粒米, 为了公平起见, 我们将三粒米抛入鸡群中.
     * 有2种结果:
@@ -25,7 +26,7 @@ If one or more I/O conditions are ready will notification.
 ## 为什么会有鲸群问题?
 ```
     * 
-由于linux 文件描述符是引用关系, 在
+    * 由于linux 文件描述符是引用关系,
 ```
 
 ## 我们该如何避免它
