@@ -35,4 +35,4 @@ shutdown 将直接关闭所传递的flag(RD, WD, RWD).
 其他问题:
     * 在epoll 新增EPOLLEXCLUSIVE, 从代码角度看是解决了鲸群问题, 不过它并没有彻底解决, 只是被隐藏得更深了.
 ```
-[参见epoll](../epoll/readme.md)
+[参见epoll](/Net/epoll/readme.md)
