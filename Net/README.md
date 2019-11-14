@@ -3,7 +3,12 @@
 ```
 编写较符合规范的网络模型.
 它将涉及到:
-    守护进程 信号 字节序 文件描述符(fd) I/O model IO多路复用(I/O Multiplexing)
+    守护进程
+    信号
+    字节序
+    文件描述符(fd)
+    I/O model
+    IO多路复用(I/O Multiplexing)
     Epoll(专讲)
 待续: Coroutine
 串讲: Reactor-model Protocol
