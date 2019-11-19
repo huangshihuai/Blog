@@ -13,7 +13,7 @@ If one or more I/O conditions are ready will notification.
     * I/O多路复用所管理的句柄它异步事件, 效率和性能比应用程序loop更高.
 ```
 
-## 鲸群问题
+## 惊群问题
 ```
 它更多描述CPU空转, 被唤醒却无事可做.
     * 我们养了至少10只鸡, 但你有3粒米, 为了公平起见, 我们将三粒米抛入鸡群中.
@@ -22,7 +22,7 @@ If one or more I/O conditions are ready will notification.
         * 1只鸡把三粒米全吃了, 9只鸡干瞪眼.
 ```
 
-## 为什么会有鲸群问题?
+## 为什么会有惊群问题?
 ```
     * 由于linux 文件描述符是引用关系(根因), 其次将fd共享在I/O多路复用之中(例如accept fd)
         * 当我们引用同一个文件句柄, 并且将它放在I/O多路复用中, 但事件到达时, 操作系统只能将其全部唤醒.

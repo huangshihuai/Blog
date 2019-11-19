@@ -11,8 +11,11 @@
     IO多路复用(I/O Multiplexing)
     Epoll(专讲)
     内核优化
+    Socket
+    Protocol
+    I/O Buffer
 待续: Coroutine
-串讲: Reactor-model Protocol
+串讲: Reactor-model
 ```
 
 ## [守护进程](daemon/readme.md)
@@ -23,3 +26,4 @@
 ## [I/O Multiplexing](io-multiplexing/readme.md)
 ## [epoll](epoll/readme.md)
 ## [内核优化](Linux/optimization.md)
+## [socket](socket/readme.md)

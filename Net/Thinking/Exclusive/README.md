@@ -1,8 +1,8 @@
 # epoll 新特性: EPOLLEXCLUSIVE
 ## 能力
 ```
-* 解决了鲸群问题 - yes(但还是存在鲸群问题)
-    - kernel能够保证epoll_wait是原子性(仅唤醒其中一个), 为什么还存在鲸群?
+* 解决了惊群问题 - yes(但还是存在惊群问题)
+    - kernel能够保证epoll_wait是原子性(仅唤醒其中一个), 为什么还存在惊群?
         * 仅讨论EPOLLEXCLUSIVE将是毫无意义的, 我们将结合EPOLL其它flag(例如ET和LT)
         * 众所周知, ET仅通知一次, LT将不断的通知(直到事件完全被处理)
         * epoll flage: EPOLLEXCLUSIVE + (ET or LT),  它将是不安全的, 场景如下:
@@ -38,8 +38,8 @@
 
 ## 论证&问题
 ```
-* 不支持EPOLLEXCLUSIVE, EPOLL存在鲸群问题
-* 支持EPILLEXCLUSIVE, EPOLL也存在鲸群问题
+* 不支持EPOLLEXCLUSIVE, EPOLL存在惊群问题
+* 支持EPILLEXCLUSIVE, EPOLL也存在惊群问题
 * 多线程读写同一个fd
 ```
 
@@ -67,7 +67,7 @@
     *   process 3081202496 return from epoll_wait!  - A 被唤醒
     *   process 3081205504 return from epoll_wait!  - B 被唤醒
     *   accept:5 pid: 3081202496                    - A 有任务处理
-    *   2个线程全部被唤醒, 只有pid=3081202496有任务-鲸群
+    *   2个线程全部被唤醒, 只有pid=3081202496有任务-惊群
 2、场景2:
     *   process 3081202496 return from epoll_wait!  - A 被唤醒
     *   process 3081205504 return from epoll_wait!  - B 被唤醒
