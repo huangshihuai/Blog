@@ -8,40 +8,36 @@ I/O model 概念上很多: 同步 I/O & 异步 I/O, 阻塞I/O & 非阻塞I/O, I/
 ## 同步/异步 & 阻塞/非阻塞
 ```
 为什么要聊这个?
-    * 我遇到过有些同学并不能把它讲明白. 例如说 阻塞是同步？ 异步是非阻塞? 反之也是?(这里不能把他们混为谈论)
+    * 我遇到过有些同学并不能把它讲明白.
+        * 例如: 阻塞是同步? 同步是阻塞? 异步是非阻塞? 非阻塞是异步?
 那么它们是什么?
-    * 同步/异步: 它们是描述一个任务的过程. 在完成这个任务中, 它可以是同步也可以是异步.
+    * 同步/异步: 它们是描述一个任务的过程. 在完成任务的过程中, 可以是同步也可以是异步.
     * 阻塞/非阻塞: 它们是描述一种执行状态.
-Synchronous && Asynchronous.
-    Process of performing one thing.
-Blocking && Non-Blocking.
-    It’s base state to performing one thing
+我们要明确的是它们描述的是不同维度的事情, 如果我们将同步/异步描述为二维世界, 那么阻塞/非阻塞将是一维世界. 因为阻塞/非阻塞描述的是点的状态, 同步/异步描述的是过程, 过程中可以包含许多点状态.
+```
+
+## I/O操作
+```
+I/O操作 是指I/O数据处于何种状态.
+    * 如果是同步I/O, 那么I/O数据将在内核态, 我们需要将执行I/O拷贝, 此操作将被阻塞.
+    * 如果是异步I/O, 那么I/O数据将在用户态, 我们不需要I/O拷贝, 将不会被阻塞.
+    * 在I/O模型中真正的异步I/O仅有异步I/O模型, 但Linux支持的并不是态友好, 我们一般采用epoll实现asio.
 ```
 
 ## 同步阻塞I/O
 ![image](/Picture/blockingIO.png)
 ```
-    同步是指在数据拷贝上是同步操作(copy data from kernel to user)
+    同步是指在I/O操作上是同步(copy data from kernel to user)
     阻塞是指在等待I/O数据是阻塞状态(从调度角度看, IO阻塞, 进程被挂起).
 ```
 
 ## 同步非阻塞I/O
 ![image](/Picture/nonBlockingIO.png)
 ```
-    同步是指在数据拷贝上是同步操作(copy data from kernel to user)
+    同步是指在I/O操作上是同步(copy data from kernel to user)
     非阻塞是指在等待I/O数据是非阻塞状态.
 ```
 
-## Asynchronous I/O
-```
-An asynchronous I/O operation does not cause the request process to be blocked.
-在I/O操作上不能被阻塞. I/O数据在用户态.
-```
-## Synchronous I/O
-```
-A synchronous I/O operation causes the requesting process to be blocked until that I/O operation completes.
-在I/O操作上将被阻塞, 直到I/O操作完成. I/O数据从内核态拷贝到用户态
-```
 
 ## I/O 模型
 ![image](/Picture/io-all.png)

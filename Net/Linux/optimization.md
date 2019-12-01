@@ -6,6 +6,7 @@
 # 网络内核优化参数
 ```
 可查看: /proc/sys/net
+TCP缓冲估算: https://www.cnblogs.com/whuqin/p/5580895.html
 ```
 
 # 内核优化说明 
