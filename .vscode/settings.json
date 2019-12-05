@@ -3,6 +3,8 @@
         "__split_buffer": "cpp",
         "string": "cpp",
         "vector": "cpp",
-        "iterator": "cpp"
+        "iterator": "cpp",
+        "unordered_map": "cpp",
+        "__locale": "cpp"
     }
 }
