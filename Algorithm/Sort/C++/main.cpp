@@ -16,8 +16,10 @@ int main() {
     sort.Bublle();
     sort.Display();
     sort.UpSet();
-    sort.Display();
     sort.Straight();
+    sort.Display();
+    sort.Display();
+    sort.Quick();
     sort.Display();
     return 0;
 }

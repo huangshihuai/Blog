@@ -20,6 +20,10 @@ class Sort {
         // TODO 快速排序 n * log(n) - n * n
         void Quick();
         // 希尔排序
+
+        // 
+    private:
+        void Quick(size_t low, size_t high);
     private:
         T *_t;
         size_t _size;
@@ -28,6 +32,37 @@ class Sort {
 
 template<typename T>
 void Sort<T>::Quick() {
+    Quick(0, _size - 1);
+}
+
+template<typename T>
+void Sort<T>::Quick(size_t low, size_t high) {
+    size_t index = low;
+    size_t tempHigh = high;
+    T val = _t[low];
+    while (low < high) {
+        while (low < high && _t[high] >= val) {
+            --high;
+        }
+        if (low >= high) {
+            break;
+        }
+        _t[low] = _t[high];
+        while (low < high && _t[low] <= val) {
+            ++low;
+        }
+        if (low >= high) {
+            break;
+        }
+        _t[high] = _t[low];
+    }
+    _t[low] = val;
+    if (index + 1 < low) {
+        Quick(index, low - 1);
+    }
+    if (low + 1 < tempHigh) {
+        Quick(low + 1, tempHigh);
+    }
 }
 
 template<typename T>
@@ -35,7 +70,7 @@ void Sort<T>::Straight() {
     for (size_t index = 0; index < this->_size; ++index) {
         size_t keep = index;
         for (size_t lindex = index + 1; lindex < this->_size; ++lindex) {
-            if (this->_t[keep] < this->_t[lindex]) {
+            if (this->_t[keep] > this->_t[lindex]) {
                 keep = lindex;
             }
         }
@@ -51,7 +86,7 @@ template<typename T>
 void Sort<T>::Bublle() {
     for (size_t index = 0; index < this->_size; ++index) {
         for (size_t lindex = index + 1; lindex < this->_size; ++lindex) {
-            if (this->_t[index] < this->_t[lindex]) {
+            if (this->_t[index] > this->_t[lindex]) {
                 T t = this->_t[index];
                 this->_t[index] = this->_t[lindex];
                 this->_t[lindex] = t;
