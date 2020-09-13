@@ -18,8 +18,11 @@ int main() {
     sort.UpSet();
     sort.Straight();
     sort.Display();
-    sort.Display();
+    sort.UpSet();
     sort.Quick();
+    sort.Display();
+    sort.UpSet();
+    sort.Heap();
     sort.Display();
     return 0;
 }

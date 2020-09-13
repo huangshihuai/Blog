@@ -19,36 +19,54 @@ class HasPtrMem {
     } while(false)
     public:
         HasPtrMem() : data(new int(3)) {
-            print_has(++this->n_cstr);
+            std::cout << "constructor\n";
+            print_has(this);
         }
-        HasPtrMem(const HasPtrMem &h) : data(new int(*h.data)) {
-            print_has(++this->n_cptr);
+        HasPtrMem(const HasPtrMem& h) : data(new int(*h.data)) {
+            std::cout << "copy constructor\n";
+            print_has(this);
         }
-        HasPtrMem(HasPtrMem &&h) : data(h.data) {
+
+        HasPtrMem(HasPtrMem&& h) : data(h.data) {
+            std::cout << "move constructor\n";
             h.data = nullptr;
-            print_has(++this->n_mvtr);
+            print_has(this);
+        }
+
+        HasPtrMem& operator=(const HasPtrMem& h) {
+            std::cout << "assignment operator\n";
+            if (this == &h) {
+                return *this;
+            }
+            this->data = new int(*h.data);
+            return *this;
+        }
+
+        HasPtrMem& operator=(HasPtrMem&& h) {
+            std::cout << "move operator\n";
+            if (this == &h) {
+                return *this;
+            }
+            this->data = h.data;
+            h.data = nullptr;
+            return *this;
         }
         ~HasPtrMem() {
-            delete data;
-            print_has(++this->n_dstr);
+            if (data) {
+                delete data;
+            }
+            print_has(this);
         }
         int *data;
-        static int n_cstr;
-        static int n_dstr;
-        static int n_cptr;
-        static int n_mvtr;
 };
-
-int HasPtrMem::n_cstr = 0;
-int HasPtrMem::n_dstr = 0;
-int HasPtrMem::n_cptr = 0;
-int HasPtrMem::n_mvtr = 0;
 
 
 HasPtrMem getTemp() {
     HasPtrMem h;
-    print_resource(h.data);
-    return h;
+    HasPtrMem h1;
+    HasPtrMem h2;
+    print_resource(&h1);
+    return h2;
 }
 
 void testRvalue(int data) {
@@ -61,9 +79,11 @@ void testRvalue(double &&data) {
 }
 
 int main() {
+    std::cout << std::is_trivial<HasPtrMem>::value << std::endl;
     testRvalue(10.00);
     int b = 10;
     testRvalue(b);
     HasPtrMem a = getTemp();
-    print_resource(a.data);
+    print_resource(&a);
+    return b;
 }

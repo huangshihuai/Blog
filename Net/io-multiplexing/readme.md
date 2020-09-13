@@ -49,6 +49,7 @@ If one or more I/O conditions are ready will notification.
 ## epoll
 ```
     * 修复poll的弊端, 以红黑树的数据结构维护fd, 二分查找.
+    * 基于事件的IO多路复用
 ```
 
 ![image](/Picture/benchmark.png)
